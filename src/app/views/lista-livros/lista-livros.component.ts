@@ -1,17 +1,38 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { Livro } from 'src/app/models/interfaces';
+import { LivroVolumeInfo } from 'src/app/models/livroVolumeInfo';
+import { LivroService } from 'src/app/service/livro.service';
 
 @Component({
   selector: 'app-lista-livros',
   templateUrl: './lista-livros.component.html',
-  styleUrls: ['./lista-livros.component.css']
+  styleUrls: ['./lista-livros.component.css'],
 })
-export class ListaLivrosComponent {
+export class ListaLivrosComponent implements OnDestroy {
+  listaLivros: Livro[];
+  campoBusca: string = '';
+  subscription: Subscription;
+  livro: Livro;
 
-  listaLivros: [];
+  constructor(private service: LivroService) {}
 
-  constructor() { }
+  buscarLivros() {
+    this.subscription = this.service.buscar(this.campoBusca).subscribe({
+      next: (items) => this.listaLivros = this.livrosResultadoParaLivros(items),
+      error: (erro) => console.log(erro),
+      complete: () => console.log('Observable completo'),
+    });
+  }
 
+  livrosResultadoParaLivros(items): LivroVolumeInfo[] {
+
+    return items.map((item) => {
+      return new LivroVolumeInfo(item.volumeInfo);
+    });
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
 }
-
-
-
